@@ -1,0 +1,146 @@
+    <!doctype>
+<html>
+    <head>
+        <title>
+        Pagination Demo with JQuery
+        </title>  
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <h1 class="text-center">Simple Pagination</h1>
+        Please choose no of Employee records you want to view:
+        <br><br>
+        <div class="dropdown">
+          <button class="dropdown-toggle btn btn-primary" data-toggle="dropdown" type="button">Records Per Page<span class="caret"></span></button>
+            <ul id="pageSelector" class="dropdown-menu">
+              <li><a href="#">4</a></li>
+                <li><a href="#">5</a></li>
+                <li><a href="#">8</a></li>
+                <li><a href="#">10</a></li>
+                <li><a href="#">20</a></li>
+            </ul>
+        
+        </div>
+        
+        <div id ="pageHelp" class="text-center">
+        <ul class="pagination pagination-lg">
+
+        </ul>
+     </div>
+        <hr>
+        <table class="table table-hover" id="datasource">
+            <thead>
+              <tr class="bg-info">
+                <td><strong>Employee Name</strong></td>
+                <td><strong>Phone</strong></td>
+                  <td><strong>City</strong></td>
+            </tr>    
+            </thead>
+            <tbody id="dataTable">
+            
+            </tbody>
+        </table>
+        <script>
+        $(document).ready(function(){
+            
+            function populatePaginationLinks(pagenum){
+                var text="";
+                $("ul.pagination").empty();
+                for(var i=0;i<pagenum;i++){
+                    text="<li>";
+                    text+="<a href='#'>";
+                    text+=(i+1);
+                    text+= "</a></li>";
+                    $("ul.pagination").append(text);
+                    
+                }//end of for loop
+                
+                //show the pagination help to the user
+                
+                $("#pageHelp").show();
+                
+                
+            }
+            
+            $("#datasource").hide();// first hide the table
+            $("#pageHelp").hide();
+            
+            var employees;
+            var recordsPerPage;
+            var totalRecords=0;
+            
+            //make an ajax call and retrieve the data from server
+            $.get("/api/employees", function(data,status){   
+               employees=data;
+                
+                totalRecords=employees.length;
+            });
+            
+            console.log("total no of records : " + totalRecords);
+            
+            $("#pageSelector li a").click(function(event){
+                $("#datasource").hide();
+               recordsPerPage= $(this).text();
+                var pagenum = Math.ceil(totalRecords/recordsPerPage);
+                console.log("no of pages : " + pagenum);
+                
+                populatePaginationLinks(pagenum);
+                
+            });
+            
+            
+//            $("ul.pagination li a").on('click',function(e)
+            $("ul.pagination").on('click',function(e){
+              e.preventDefault();
+                
+                var page = parseInt($(e.target).text());
+                console.log("page no:"+ page);
+                $(e.target).parents("ul").children().removeClass("active");
+                $(e.target).parent().addClass("active");
+                
+                showData(page);
+                
+            });
+                
+//             $("ul.pagination").on('click',function(e){
+//                e.preventDefault();
+//                var page = parseInt($(this).text());
+//                $(this).parents("ul").children().removeClass("active");
+//                $(this).parent().addClass("active");
+//                console.log(page);
+//                showData(page);
+//            });
+//            
+            
+            function showData(page){
+                console.log("records per page that user chose is "+ recordsPerPage);
+                var startindex = (page-1)*recordsPerPage;
+                console.log("start index is " + startindex);
+                var endindex = startindex + recordsPerPage;
+                console.log("end index is " + endindex);
+                var employeesData = employees.slice(startindex,endindex);
+                $("#dataTable").empty();
+                var text;
+                for(var i=0;i<recordsPerPage;i++){
+                    text="<tr>";
+                    text+="<td>" +  employeesData[i].name+ "</td>";
+                    text+="<td>" +  employeesData[i].phone+"</td>";
+                    text+= "<td>" +  employeesData[i].city +"</td>";
+                    text+= "</tr>";
+                    
+                    $("#dataTable").append(text);
+                }
+                 $("#datasource").show();
+                
+            }
+            
+            
+        });
+        </script>
+    </body>
+</html>
